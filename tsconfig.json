@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "strict": true,         // 엄격한 타입 검사 비활성화
+
+    "target": "ES2021",
+
+    "moduleResolution": "node",
+
+    // Skip type checking for node modules
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  }
+}
