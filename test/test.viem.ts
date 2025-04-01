@@ -49,7 +49,7 @@ async function test() {
   const delivered = [];
 
   let toBlock = await clientHandler.getBlockNumber('parent');
-  while (delivered.length < Number(10)) {
+  while (delivered.length < Number(batchCount)) {
     const fromBlock = getBlockToSearchEventsFrom(toBlock);
     const result = await sequencerInboxHandler.getSequencerBatchDeliveredEvent(fromBlock, toBlock);
     delivered.push(...result);
