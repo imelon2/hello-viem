@@ -11,6 +11,8 @@ import {
   isDaCert,
   serializeDaCert,
 } from '../src/lib/utils';
+import * as fs from 'fs';
+import * as path from 'path';
 
 async function test() {
   console.time('Execution Time');
@@ -37,7 +39,6 @@ async function test() {
     String(process.env.ORBIT_CHAIN_RPC),
   );
 
-  
   const rollupHandler = new RollupHandler(clientHandler, process.env.ROLLUP_ADDRESS as Address);
   const { sequencerInbox } = await rollupHandler.getSystemContract(['sequencerInbox']);
 
@@ -48,7 +49,7 @@ async function test() {
   const delivered = [];
 
   let toBlock = await clientHandler.getBlockNumber('parent');
-  while (delivered.length < Number(batchCount)) {
+  while (delivered.length < Number(10)) {
     const fromBlock = getBlockToSearchEventsFrom(toBlock);
     const result = await sequencerInboxHandler.getSequencerBatchDeliveredEvent(fromBlock, toBlock);
     delivered.push(...result);
@@ -61,10 +62,14 @@ async function test() {
 
     toBlock = fromBlock;
   }
-  console.log(delivered[delivered.length]);
+  const FullnodeConfigDir = path.join(__dirname, './l3full_config.json');
 
+  fs.writeFileSync(
+    FullnodeConfigDir,
+    JSON.stringify(delivered, (_, value) => (typeof value === 'bigint' ? Number(value) : value), 2),
+  );
 
-  return
+  return;
   console.log();
 
   let daCount = 0;
@@ -75,7 +80,6 @@ async function test() {
       Number((a as any).args.batchSequenceNumber) - Number((b as any).args.batchSequenceNumber),
   );
 
-  
   const chunkArray = (arr: any[], size: number) => {
     const result = [];
     for (let i = 0; i < arr.length; i += size) {
@@ -87,7 +91,6 @@ async function test() {
   const chunks = chunkArray(delivered, 100);
   const arr_tx = [];
 
-
   for (const chunk of chunks) {
     const txWithBlock = await Promise.all(
       chunk.map(async (e) => {
@@ -96,16 +99,13 @@ async function test() {
           clientHandler.getBlockByHash('parent', e.blockHash!),
         ]);
 
-        return { transactionHash:tx.hash,...tx, ...block };
+        return { transactionHash: tx.hash, ...tx, ...block };
       }),
     );
 
     arr_tx.push(...txWithBlock);
   }
 
-
-
-  
   const jsons = [];
   for (let i = 1; i < arr_tx.length; i++) {
     const tx = arr_tx[i];
@@ -142,12 +142,12 @@ async function test() {
     }
   }
 
-//     console.log(
-//     JSON.stringify(jsons, (_, value) =>
-//       typeof value === 'bigint' ? Number(value) : value,
-//       2
-//     )
-//   );
+  //     console.log(
+  //     JSON.stringify(jsons, (_, value) =>
+  //       typeof value === 'bigint' ? Number(value) : value,
+  //       2
+  //     )
+  //   );
   console.log(`DA Count: ${daCount}`);
   console.log(`Rollup Count: ${rollupCount}`);
   console.timeEnd('Execution Time');

@@ -17,7 +17,7 @@ export class ClientHandler {
     const parentChainInformation = getChainInfoFromChainId(parentChainId);
     this.parentChainPublicClient = createPublicClient({
       chain: parentChainInformation,
-      transport: http(parentChainRpc,{timeout:60000,retryCount:10}),
+      transport: http(parentChainRpc,{timeout:1000000,retryCount:10,retryDelay:10000}),
       // transport: webSocket(parentChainRpc,{timeout:60000,retryCount:10}),
     });
 
@@ -92,6 +92,10 @@ export class ClientHandler {
 
     const result = await client.getBlock({
       blockHash,
+    });    
+
+    const result1 = await client.getBlock({
+      blockTag:"finalized"
     });    
     return result;
   };
